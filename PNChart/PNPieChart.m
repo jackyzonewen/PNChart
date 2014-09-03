@@ -20,6 +20,7 @@
 @property (nonatomic) UIView  *contentView;
 @property (nonatomic) CAShapeLayer *pieLayer;
 @property (nonatomic) NSMutableArray *descriptionLabels;
+@property (nonatomic) NSMutableArray *descriptionTags;
 
 - (void)loadDefault;
 
@@ -51,6 +52,7 @@
         _descriptionTextShadowColor = [[UIColor blackColor] colorWithAlphaComponent:0.4];
         _descriptionTextShadowOffset =  CGSizeMake(0, 1);
 		_duration = 1.0;
+        _descPositionOnLeftTop = NO;
         
 		[self loadDefault];
 	}
@@ -68,7 +70,10 @@
 	[self addSubview:_contentView];
     [_descriptionLabels removeAllObjects];
 	_descriptionLabels = [NSMutableArray new];
-	
+    
+    [_descriptionTags removeAllObjects];
+    _descriptionTags = [NSMutableArray new];
+    
 	_pieLayer = [CAShapeLayer layer];
 	[_contentView.layer addSublayer:_pieLayer];
 }
@@ -116,35 +121,50 @@
 }
 
 - (UILabel *)descriptionLabelForItemAtIndex:(NSUInteger)index{
-	PNPieChartDataItem *currentDataItem = [self dataItemForIndex:index];
-    CGFloat distance = _innerCircleRadius + (_outterCircleRadius - _innerCircleRadius) / 2;
-    CGFloat centerPercentage =(_currentTotal + currentDataItem.value /2 ) / _total;
-    CGFloat rad = centerPercentage * 2 * M_PI;
-    
-	_currentTotal += currentDataItem.value;
-	
+
+    PNPieChartDataItem *currentDataItem = [self dataItemForIndex:index];
     NSString *titleText = currentDataItem.description;
     if(!titleText){
         titleText = [NSString stringWithFormat:@"%.0f%%",currentDataItem.value/ _total * 100];
+    } else {
+        titleText = [NSString stringWithFormat:@"%@ %.0f%%", titleText, currentDataItem.value/ _total * 100];
     }
     
-    CGPoint center = CGPointMake(_outterCircleRadius + distance * sin(rad),
-                                 _outterCircleRadius - distance * cos(rad));
-    
-    CGRect frame;
-    frame = CGRectMake(0, 0, 100, 80);
-    
-    UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:frame];
+    UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 40)];
     [descriptionLabel setText:titleText];
     [descriptionLabel setFont:_descriptionTextFont];
     [descriptionLabel setTextColor:_descriptionTextColor];
     [descriptionLabel setShadowColor:_descriptionTextShadowColor];
     [descriptionLabel setShadowOffset:_descriptionTextShadowOffset];
-    [descriptionLabel setTextAlignment:NSTextAlignmentCenter];
-    [descriptionLabel setCenter:center];
     [descriptionLabel setAlpha:0];
     [descriptionLabel setBackgroundColor:[UIColor clearColor]];
-	
+    
+    if (self.descPositionOnLeftTop) {
+        
+        UIView *ivTag = [[UIView alloc] initWithFrame:CGRectMake(0.f, 0.f, 10.f, 10.f)];
+        ivTag.backgroundColor = currentDataItem.color;
+        ivTag.center = CGPointMake(5.f, (index + 1) * 20);
+        ivTag.alpha = 0.f;
+        [_descriptionTags addObject:ivTag];
+        [_contentView addSubview:ivTag];
+        
+        CGPoint center = CGPointMake(65.f, (index + 1) * 20);
+        descriptionLabel.center = center;
+        [descriptionLabel setTextAlignment:NSTextAlignmentLeft];
+    } else {
+
+        CGFloat distance = _innerCircleRadius + (_outterCircleRadius - _innerCircleRadius) / 2;
+        CGFloat centerPercentage =(_currentTotal + currentDataItem.value /2 ) / _total;
+        CGFloat rad = centerPercentage * 2 * M_PI;
+        
+        _currentTotal += currentDataItem.value;
+        
+        CGPoint center = CGPointMake(_outterCircleRadius + distance * sin(rad),
+                                     _outterCircleRadius - distance * cos(rad));
+        descriptionLabel.center = center;
+        [descriptionLabel setTextAlignment:NSTextAlignmentCenter];
+    }
+    
 	return descriptionLabel;
 }
 
@@ -213,6 +233,11 @@
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
     [_descriptionLabels enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        [UIView animateWithDuration:0.2 animations:^(){
+            [obj setAlpha:1];
+        }];
+    }];
+    [_descriptionTags enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         [UIView animateWithDuration:0.2 animations:^(){
             [obj setAlpha:1];
         }];

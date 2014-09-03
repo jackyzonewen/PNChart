@@ -21,6 +21,8 @@
 @property (nonatomic) CGSize   descriptionTextShadowOffset; //default is CGSizeMake(0, 1)
 @property (nonatomic) NSTimeInterval duration;//default is 1.0
 
+@property (nonatomic, assign) BOOL descPositionOnLeftTop; // show descriptionText on the left top of pie view，default is NO
+
 - (void)strokeChart;
 
 @end
