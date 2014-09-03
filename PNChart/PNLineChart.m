@@ -534,7 +534,7 @@
         // draw x unit
         if ([self.xUnit length]) {
             CGFloat height = [PNLineChart heightOfString:self.xUnit withWidth:30.f font:font];
-            CGRect drawRect = CGRectMake(CGRectGetWidth(rect) - _chartMargin + 5, _chartMargin + _chartCavanHeight - height / 2, 25.f, height);
+            CGRect drawRect = CGRectMake(CGRectGetWidth(rect) - _chartMargin + 10, _chartMargin + _chartCavanHeight + height / 2, 25.f, height);
             [self drawTextInContext:ctx text:self.xUnit inRect:drawRect font:font];
         }
     }
